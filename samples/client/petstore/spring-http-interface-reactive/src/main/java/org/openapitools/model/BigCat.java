@@ -22,7 +22,7 @@ import jakarta.annotation.Generated;
  */
 
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", comments = "Generator version: 7.9.0-SNAPSHOT")
 public class BigCat extends Cat {
 
   /**
@@ -66,11 +66,6 @@ public class BigCat extends Cat {
 
   private KindEnum kind;
 
-  /**
-   * Default constructor
-   * @deprecated Use {@link BigCat#BigCat(String)}
-   */
-  @Deprecated
   public BigCat() {
     super();
   }
@@ -90,7 +85,7 @@ public class BigCat extends Cat {
   /**
    * Get kind
    * @return kind
-  */
+   */
   
   @JsonProperty("kind")
   public KindEnum getKind() {
@@ -101,21 +96,21 @@ public class BigCat extends Cat {
     this.kind = kind;
   }
 
+
   public BigCat declawed(Boolean declawed) {
-    super.setDeclawed(declawed);
+    super.declawed(declawed);
     return this;
   }
 
   public BigCat className(String className) {
-    super.setClassName(className);
+    super.className(className);
     return this;
   }
 
   public BigCat color(String color) {
-    super.setColor(color);
+    super.color(color);
     return this;
   }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {

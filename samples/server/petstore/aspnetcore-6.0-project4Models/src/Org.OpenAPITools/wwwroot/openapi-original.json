@@ -27,6 +27,26 @@
     "name" : "user"
   } ],
   "paths" : {
+    "/test" : {
+      "get" : {
+        "parameters" : [ {
+          "explode" : true,
+          "in" : "query",
+          "name" : "testQuery",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/TestEnum"
+          },
+          "style" : "form"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "summary" : "Test API"
+      }
+    },
     "/pet" : {
       "post" : {
         "description" : "",
@@ -792,6 +812,26 @@
         "summary" : "fake endpoint to test parameter example (object)",
         "tags" : [ "fake" ]
       }
+    },
+    "/fake/nullable_example_test" : {
+      "get" : {
+        "description" : "",
+        "operationId" : "fake_nullable_example_test",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TestNullable"
+                }
+              }
+            },
+            "description" : "Successful operation"
+          }
+        },
+        "summary" : "Fake endpoint to test nullable example (object)",
+        "tags" : [ "fake" ]
+      }
     }
   },
   "components" : {
@@ -828,6 +868,26 @@
       }
     },
     "schemas" : {
+      "TestEnum" : {
+        "enum" : [ "A", "B" ],
+        "type" : "string"
+      },
+      "TestNullable" : {
+        "example" : {
+          "nullableName" : "nullableName",
+          "name" : "name"
+        },
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "nullableName" : {
+            "nullable" : true,
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "Order" : {
         "description" : "An order for a pets from the pet store",
         "example" : {
@@ -1052,14 +1112,24 @@
         "allOf" : [ {
           "$ref" : "#/components/schemas/Animal"
         }, {
-          "$ref" : "#/components/schemas/Dog_allOf"
+          "properties" : {
+            "breed" : {
+              "type" : "string"
+            }
+          },
+          "type" : "object"
         } ]
       },
       "Cat" : {
         "allOf" : [ {
           "$ref" : "#/components/schemas/Animal"
         }, {
-          "$ref" : "#/components/schemas/Cat_allOf"
+          "properties" : {
+            "declawed" : {
+              "type" : "boolean"
+            }
+          },
+          "type" : "object"
         } ]
       },
       "Animal" : {
@@ -1108,24 +1178,6 @@
           }
         },
         "type" : "object"
-      },
-      "Dog_allOf" : {
-        "properties" : {
-          "breed" : {
-            "type" : "string"
-          }
-        },
-        "type" : "object",
-        "example" : null
-      },
-      "Cat_allOf" : {
-        "properties" : {
-          "declawed" : {
-            "type" : "boolean"
-          }
-        },
-        "type" : "object",
-        "example" : null
       }
     },
     "securitySchemes" : {

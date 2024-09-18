@@ -16,9 +16,10 @@
 
 package org.openapitools.codegen.languages;
 
-import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import lombok.Getter;
+import lombok.Setter;
 import org.openapitools.codegen.*;
 import org.openapitools.codegen.meta.GeneratorMetadata;
 import org.openapitools.codegen.meta.Stability;
@@ -49,24 +50,16 @@ public class XojoClientCodegen extends DefaultCodegen implements CodegenConfig {
 
     public enum SERIALIZATION_LIBRARY_TYPE {xoson}
 
-    protected String projectName = "OpenAPIClient";
-    protected boolean nonPublicApi = false;
+    @Setter protected String projectName = "OpenAPIClient";
+    @Setter protected boolean nonPublicApi = false;
     protected boolean supportsAsync = true;
-    protected SERIALIZATION_LIBRARY_TYPE serializationLibrary = SERIALIZATION_LIBRARY_TYPE.xoson;
+    @Getter protected SERIALIZATION_LIBRARY_TYPE serializationLibrary = SERIALIZATION_LIBRARY_TYPE.xoson;
 
     // Number for each object that appears in the xojo_project file.
     // We start with a relatively high value, to have space for other static objects.
     protected int projectObjectNumber = 100042;
 
     private final Logger LOGGER = LoggerFactory.getLogger(XojoClientCodegen.class);
-
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
-
-    public void setNonPublicApi(boolean nonPublicApi) {
-        this.nonPublicApi = nonPublicApi;
-    }
 
     public void setSupportsAsync(Boolean supportsAsync) {
         this.supportsAsync = supportsAsync;
@@ -235,8 +228,7 @@ public class XojoClientCodegen extends DefaultCodegen implements CodegenConfig {
     @Override
     public String getTypeDeclaration(Schema p) {
         if (ModelUtils.isArraySchema(p)) {
-            ArraySchema ap = (ArraySchema) p;
-            Schema inner = ap.getItems();
+            Schema inner = ModelUtils.getSchemaItems(p);
             return super.getTypeDeclaration(inner);
         }
         return super.getTypeDeclaration(p);
@@ -662,7 +654,7 @@ public class XojoClientCodegen extends DefaultCodegen implements CodegenConfig {
             return schema.getExample().toString();
         }
 
-        return getPropertyDefaultValue(schema);
+        return getDefaultPropertyValue(schema);
     }
 
     @Override
@@ -671,7 +663,7 @@ public class XojoClientCodegen extends DefaultCodegen implements CodegenConfig {
             return schema.getDefault().toString();
         }
 
-        return getPropertyDefaultValue(schema);
+        return getDefaultPropertyValue(schema);
     }
 
     @Override
@@ -694,10 +686,6 @@ public class XojoClientCodegen extends DefaultCodegen implements CodegenConfig {
         }
     }
 
-    public SERIALIZATION_LIBRARY_TYPE getSerializationLibrary() {
-        return this.serializationLibrary;
-    }
-
     /**
      * Sets the serialization engine for Xojo
      *
@@ -716,7 +704,7 @@ public class XojoClientCodegen extends DefaultCodegen implements CodegenConfig {
         }
     }
 
-    private String getPropertyDefaultValue(Schema schema) {
+    private String getDefaultPropertyValue(Schema schema) {
         if (ModelUtils.isBooleanSchema(schema)) {
             return "False";
         } else if (ModelUtils.isDateSchema(schema)) {

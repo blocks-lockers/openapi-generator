@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.openapitools.jackson.nullable.JsonNullable;
 import java.time.OffsetDateTime;
@@ -19,7 +20,7 @@ import jakarta.annotation.Generated;
  * TypeHolderExample
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", comments = "Generator version: 7.9.0-SNAPSHOT")
 public class TypeHolderExample {
 
   private String stringItem;
@@ -35,11 +36,6 @@ public class TypeHolderExample {
   
   private List<Integer> arrayItem = new ArrayList<>();
 
-  /**
-   * Default constructor
-   * @deprecated Use {@link TypeHolderExample#TypeHolderExample(String, BigDecimal, Float, Integer, Boolean, List<Integer>)}
-   */
-  @Deprecated
   public TypeHolderExample() {
     super();
   }
@@ -64,7 +60,7 @@ public class TypeHolderExample {
   /**
    * Get stringItem
    * @return stringItem
-  */
+   */
   @NotNull
   @JsonProperty("string_item")
   public String getStringItem() {
@@ -83,7 +79,7 @@ public class TypeHolderExample {
   /**
    * Get numberItem
    * @return numberItem
-  */
+   */
   @NotNull
   @JsonProperty("number_item")
   public BigDecimal getNumberItem() {
@@ -102,7 +98,7 @@ public class TypeHolderExample {
   /**
    * Get floatItem
    * @return floatItem
-  */
+   */
   @NotNull
   @JsonProperty("float_item")
   public Float getFloatItem() {
@@ -121,7 +117,7 @@ public class TypeHolderExample {
   /**
    * Get integerItem
    * @return integerItem
-  */
+   */
   @NotNull
   @JsonProperty("integer_item")
   public Integer getIntegerItem() {
@@ -140,7 +136,7 @@ public class TypeHolderExample {
   /**
    * Get boolItem
    * @return boolItem
-  */
+   */
   @NotNull
   @JsonProperty("bool_item")
   public Boolean getBoolItem() {
@@ -167,7 +163,7 @@ public class TypeHolderExample {
   /**
    * Get arrayItem
    * @return arrayItem
-  */
+   */
   @NotNull
   @JsonProperty("array_item")
   public List<Integer> getArrayItem() {

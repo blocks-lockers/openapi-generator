@@ -1,7 +1,7 @@
 //
 // AUTO-GENERATED FILE, DO NOT MODIFY!
 //
-// @dart=2.12
+// @dart=2.18
 
 // ignore_for_file: unused_element, unused_import
 // ignore_for_file: always_put_required_named_parameters_first
@@ -20,7 +20,7 @@ class ArrayOfNumberOnly {
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is ArrayOfNumberOnly &&
-     other.arrayNumber == arrayNumber;
+    _deepEquality.equals(other.arrayNumber, arrayNumber);
 
   @override
   int get hashCode =>
@@ -55,8 +55,8 @@ class ArrayOfNumberOnly {
       }());
 
       return ArrayOfNumberOnly(
-        arrayNumber: json[r'ArrayNumber'] is List
-            ? (json[r'ArrayNumber'] as List).cast<num>()
+        arrayNumber: json[r'ArrayNumber'] is Iterable
+            ? (json[r'ArrayNumber'] as Iterable).cast<num>().toList(growable: false)
             : const [],
       );
     }

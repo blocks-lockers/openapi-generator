@@ -66,10 +66,6 @@ open class URLSessionRequestBuilder<T>: RequestBuilder<T> {
 
         originalRequest.httpMethod = method.rawValue
 
-        headers.forEach { key, value in
-            originalRequest.setValue(value, forHTTPHeaderField: key)
-        }
-
         buildHeaders().forEach { key, value in
             originalRequest.setValue(value, forHTTPHeaderField: key)
         }
@@ -102,6 +98,8 @@ open class URLSessionRequestBuilder<T>: RequestBuilder<T> {
                 encoding = FormDataEncoding(contentTypeForFormPart: contentTypeForFormPart(fileURL:))
             } else if contentType.hasPrefix("application/x-www-form-urlencoded") {
                 encoding = FormURLEncoding()
+            } else if contentType.hasPrefix("application/octet-stream"){
+                encoding = OctetStreamEncoding()
             } else {
                 fatalError("Unsupported Media Type - \(contentType)")
             }
@@ -539,6 +537,30 @@ private class FormURLEncoding: ParameterEncoding {
         }
 
         urlRequest.httpBody = requestBodyComponents.query?.data(using: .utf8)
+
+        return urlRequest
+    }
+}
+
+private class OctetStreamEncoding: ParameterEncoding {
+    func encode(_ urlRequest: URLRequest, with parameters: [String: Any]?) throws -> URLRequest {
+
+        var urlRequest = urlRequest
+
+        guard let body = parameters?["body"] else { return urlRequest }
+
+        if urlRequest.value(forHTTPHeaderField: "Content-Type") == nil {
+            urlRequest.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
+        }
+
+        switch body {
+        case let fileURL as URL:
+            urlRequest.httpBody = try Data(contentsOf: fileURL)
+        case let data as Data:
+            urlRequest.httpBody = data
+        default:
+            fatalError("Unprocessable body \(body)")
+        }
 
         return urlRequest
     }

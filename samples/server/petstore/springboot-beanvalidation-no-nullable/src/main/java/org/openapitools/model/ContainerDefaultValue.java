@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.time.OffsetDateTime;
 import javax.validation.Valid;
@@ -20,7 +21,7 @@ import javax.annotation.Generated;
  * ContainerDefaultValue
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", comments = "Generator version: 7.9.0-SNAPSHOT")
 public class ContainerDefaultValue {
 
   @Valid
@@ -35,11 +36,6 @@ public class ContainerDefaultValue {
   @Valid
   private List<String> nullableArrayWithDefault = new ArrayList<>(Arrays.asList("foo", "bar"));
 
-  /**
-   * Default constructor
-   * @deprecated Use {@link ContainerDefaultValue#ContainerDefaultValue(List<String>, List<String>)}
-   */
-  @Deprecated
   public ContainerDefaultValue() {
     super();
   }
@@ -68,7 +64,7 @@ public class ContainerDefaultValue {
   /**
    * Get nullableArray
    * @return nullableArray
-  */
+   */
   
   @ApiModelProperty(value = "")
   @JsonProperty("nullable_array")
@@ -96,7 +92,7 @@ public class ContainerDefaultValue {
   /**
    * Get nullableRequiredArray
    * @return nullableRequiredArray
-  */
+   */
   @NotNull 
   @ApiModelProperty(required = true, value = "")
   @JsonProperty("nullable_required_array")
@@ -124,7 +120,7 @@ public class ContainerDefaultValue {
   /**
    * Get requiredArray
    * @return requiredArray
-  */
+   */
   @NotNull 
   @ApiModelProperty(required = true, value = "")
   @JsonProperty("required_array")
@@ -152,7 +148,7 @@ public class ContainerDefaultValue {
   /**
    * Get nullableArrayWithDefault
    * @return nullableArrayWithDefault
-  */
+   */
   
   @ApiModelProperty(value = "")
   @JsonProperty("nullable_array_with_default")

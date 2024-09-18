@@ -1,6 +1,8 @@
 export * from "./http/http{{importFileExtension}}";
 export * from "./auth/auth{{importFileExtension}}";
+{{#models.0}}
 export * from "./models/all{{importFileExtension}}";
+{{/models.0}}
 export { createConfiguration } from "./configuration{{importFileExtension}}"
 export{{#platforms}}{{#deno}} type{{/deno}}{{/platforms}} { Configuration } from "./configuration{{importFileExtension}}"
 export * from "./apis/exception{{importFileExtension}}";
@@ -14,7 +16,7 @@ export { Middleware } from './middleware{{importFileExtension}}';
 export{{#platforms}}{{#deno}} type{{/deno}}{{/platforms}} { PromiseMiddleware as Middleware } from './middleware{{importFileExtension}}';
 {{/useRxJS}}
 {{#useObjectParameters}}
-export { {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{classname}}{{operationIdCamelCase}}Request, {{/operation}}Object{{classname}} as {{classname}}{{^-last}}, {{/-last}} {{/operations}}{{/apis}}{{/apiInfo}}} from './types/ObjectParamAPI{{importFileExtension}}';
+export { {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}{{#platforms}}{{#deno}}type {{/deno}}{{/platforms}}{{classname}}{{operationIdCamelCase}}Request, {{/operation}}Object{{classname}} as {{classname}}{{^-last}}, {{/-last}} {{/operations}}{{/apis}}{{/apiInfo}}} from './types/ObjectParamAPI{{importFileExtension}}';
 {{/useObjectParameters}}
 {{^useObjectParameters}}
 {{#useRxJS}}

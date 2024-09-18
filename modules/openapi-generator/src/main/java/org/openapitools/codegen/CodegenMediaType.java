@@ -1,17 +1,20 @@
 package org.openapitools.codegen;
 
 import io.swagger.v3.oas.models.examples.Example;
+import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class CodegenMediaType {
+@Getter public class CodegenMediaType {
     private CodegenProperty schema;
     private LinkedHashMap<String, CodegenEncoding> encoding;
     private HashMap<String, SchemaTestCase> testCases = new HashMap<>();
     private Map<String, Example> examples = null;
+    private Object example = null;
+    public Map<String, Object> vendorExtensions = new HashMap<>();
 
     public CodegenMediaType(CodegenProperty schema, LinkedHashMap<String, CodegenEncoding> encoding, HashMap<String, SchemaTestCase> testCases) {
         this.schema = schema;
@@ -26,24 +29,16 @@ public class CodegenMediaType {
         this.examples = examples;
     }
 
-    public CodegenProperty getSchema() {
-        return schema;
-    }
-
-    public LinkedHashMap<String, CodegenEncoding> getEncoding() {
-        return encoding;
-    }
-
-    public HashMap<String, SchemaTestCase> getTestCases() { return testCases; }
-
-    public Map<String, Example> getExamples() {
-        return examples;
+    public CodegenMediaType(CodegenProperty schema, LinkedHashMap<String, CodegenEncoding> encoding, HashMap<String, SchemaTestCase> testCases, Object example) {
+        this(schema, encoding, testCases);
+        this.example = example;
     }
 
     public String toString() {
         final StringBuilder sb = new StringBuilder("CodegenMediaType{");
         sb.append("schema=").append(schema);
         sb.append(", encoding=").append(encoding);
+        sb.append(", vendorExtensions=").append(vendorExtensions);
         sb.append('}');
         return sb.toString();
     }
@@ -53,12 +48,13 @@ public class CodegenMediaType {
         if (o == null || getClass() != o.getClass()) return false;
         CodegenMediaType that = (CodegenMediaType) o;
         return Objects.equals(schema,that.getSchema()) &&
-                Objects.equals(encoding, that.getEncoding());
+                Objects.equals(encoding, that.getEncoding()) &&
+                Objects.equals(vendorExtensions, that.vendorExtensions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(schema, encoding);
+        return Objects.hash(schema, encoding, vendorExtensions);
     }
 }
 

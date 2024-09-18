@@ -23,7 +23,7 @@ import javax.annotation.Generated;
  */
 
 @JsonTypeName("Enum_Test")
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", comments = "Generator version: 7.9.0-SNAPSHOT")
 public class EnumTestDto {
 
   /**
@@ -180,11 +180,6 @@ public class EnumTestDto {
 
   private OuterEnumDto outerEnum;
 
-  /**
-   * Default constructor
-   * @deprecated Use {@link EnumTestDto#EnumTestDto(EnumStringRequiredEnum)}
-   */
-  @Deprecated
   public EnumTestDto() {
     super();
   }
@@ -204,7 +199,7 @@ public class EnumTestDto {
   /**
    * Get enumString
    * @return enumString
-  */
+   */
   
   @ApiModelProperty(value = "")
   @JsonProperty("enum_string")
@@ -224,7 +219,7 @@ public class EnumTestDto {
   /**
    * Get enumStringRequired
    * @return enumStringRequired
-  */
+   */
   @NotNull 
   @ApiModelProperty(required = true, value = "")
   @JsonProperty("enum_string_required")
@@ -244,7 +239,7 @@ public class EnumTestDto {
   /**
    * Get enumInteger
    * @return enumInteger
-  */
+   */
   
   @ApiModelProperty(value = "")
   @JsonProperty("enum_integer")
@@ -264,7 +259,7 @@ public class EnumTestDto {
   /**
    * Get enumNumber
    * @return enumNumber
-  */
+   */
   
   @ApiModelProperty(value = "")
   @JsonProperty("enum_number")
@@ -284,7 +279,7 @@ public class EnumTestDto {
   /**
    * Get outerEnum
    * @return outerEnum
-  */
+   */
   @Valid 
   @ApiModelProperty(value = "")
   @JsonProperty("outerEnum")

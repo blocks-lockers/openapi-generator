@@ -19,7 +19,7 @@ import javax.annotation.Generated;
  */
 
 @ApiModel(description = "Model for testing model name same as property name")
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", comments = "Generator version: 7.9.0-SNAPSHOT")
 public class Name {
 
   private Integer name;
@@ -30,11 +30,6 @@ public class Name {
 
   private Integer _123number;
 
-  /**
-   * Default constructor
-   * @deprecated Use {@link Name#Name(Integer)}
-   */
-  @Deprecated
   public Name() {
     super();
   }
@@ -54,7 +49,7 @@ public class Name {
   /**
    * Get name
    * @return name
-  */
+   */
   @NotNull 
   @ApiModelProperty(required = true, value = "")
   @JsonProperty("name")
@@ -74,7 +69,7 @@ public class Name {
   /**
    * Get snakeCase
    * @return snakeCase
-  */
+   */
   
   @ApiModelProperty(readOnly = true, value = "")
   @JsonProperty("snake_case")
@@ -94,7 +89,7 @@ public class Name {
   /**
    * Get property
    * @return property
-  */
+   */
   
   @ApiModelProperty(value = "")
   @JsonProperty("property")
@@ -114,7 +109,7 @@ public class Name {
   /**
    * Get _123number
    * @return _123number
-  */
+   */
   
   @ApiModelProperty(readOnly = true, value = "")
   @JsonProperty("123Number")

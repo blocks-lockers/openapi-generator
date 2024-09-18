@@ -5,6 +5,7 @@
 {{^hideGenerationTimestamp}}
   - Build date: {{generatedDate}}
 {{/hideGenerationTimestamp}}
+  - Generator version: {{generatorVersion}}
 
 {{{appDescriptionWithNewLines}}}
 
@@ -89,7 +90,7 @@ import {{{invokerPackage}}}.ApiClient;
 import {{{invokerPackage}}}.ApiException;
 import {{{invokerPackage}}}.Configuration;{{#hasAuthMethods}}
 import {{{invokerPackage}}}.auth.*;{{/hasAuthMethods}}
-import {{{invokerPackage}}}.models.*;
+import {{{modelPackage}}}.*;
 import {{{package}}}.{{{classname}}};
 
 public class Example {
@@ -168,8 +169,12 @@ Class | Method | HTTP request | Description
 - **API key parameter name**: {{keyParamName}}
 - **Location**: {{#isKeyInQuery}}URL query string{{/isKeyInQuery}}{{#isKeyInHeader}}HTTP header{{/isKeyInHeader}}
 {{/isApiKey}}
-{{#isBasic}}- **Type**: HTTP basic authentication
-{{/isBasic}}
+{{#isBasicBasic}}- **Type**: HTTP basic authentication
+{{/isBasicBasic}}
+{{#isBasicBearer}}- **Type**: HTTP Bearer Token authentication{{#bearerFormat}} ({{{.}}}){{/bearerFormat}}
+{{/isBasicBearer}}
+{{#isHttpSignature}}- **Type**: HTTP signature authentication
+{{/isHttpSignature}}
 {{#isOAuth}}- **Type**: OAuth
 - **Flow**: {{flow}}
 - **Authorization URL**: {{authorizationUrl}}
