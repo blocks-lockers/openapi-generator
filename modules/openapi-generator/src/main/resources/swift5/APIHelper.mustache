@@ -11,7 +11,7 @@ import Vapor{{/useVapor}}
 
 {{#nonPublicApi}}{{/nonPublicApi}}{{^nonPublicApi}}public {{/nonPublicApi}}protocol BackendConfig {
     static var basePath: String { get set }
-    static var credential: URLCredential? { get set }
+    static var credential: String? { get set }
     static var customHeaders: [String: String] { get set }
     static var requestBuilderFactory: RequestBuilderFactory { get set }
 }

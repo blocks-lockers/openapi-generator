@@ -6,15 +6,9 @@
 //
 
 import Foundation
-#if !os(macOS)
-import UniformTypeIdentifiers
+#if canImport(FoundationNetworking)
+import FoundationNetworking
 #endif
-
-{{#nonPublicApi}}{{/nonPublicApi}}{{^nonPublicApi}}public {{/nonPublicApi}}protocol URLSessionProtocol {
-    func data(for request: URLRequest, delegate: (any URLSessionTaskDelegate)?) async throws -> (Data, URLResponse)
-}
-
-extension URLSession: URLSessionProtocol {}
 
 {{#nonPublicApi}}{{/nonPublicApi}}{{^nonPublicApi}}public {{/nonPublicApi}}class URLSessionRequestBuilderFactory: RequestBuilderFactory {
 
@@ -29,20 +23,13 @@ extension URLSession: URLSessionProtocol {}
     }
 }
 
-typealias {{projectName}}APIChallengeHandler = ((URLSession, URLSessionTask, URLAuthenticationChallenge) -> (URLSession.AuthChallengeDisposition, URLCredential?))
-
 // Store the URLSession to retain its reference
 private let defaultURLSession = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
 
 
-class URLSessionRequestBuilder<T>: RequestBuilder<T> {
+open class URLSessionRequestBuilder<T>: RequestBuilder<T> {
 
-    /**
-     May be assigned if you want to control the authentication challenges.
-     */
-    var taskDidReceiveChallenge: {{projectName}}APIChallengeHandler?
-
-    required init(method: String, URLString: String, parameters: [String: Any]?, headers: [String: String] = [:], requiresAuthentication: Bool) {
+    required public init(method: String, URLString: String, parameters: [String: Any]?, headers: [String: String] = [:], requiresAuthentication: Bool) {
         super.init(method: method, URLString: URLString, parameters: parameters, headers: headers, requiresAuthentication: requiresAuthentication)
     }
 
@@ -50,7 +37,7 @@ class URLSessionRequestBuilder<T>: RequestBuilder<T> {
      May be overridden by a subclass if you want to control the URLSession
      configuration.
      */
-    func createURLSession() -> URLSessionProtocol {
+    open func createURLSession() -> URLSession {
         defaultURLSession
     }
 
@@ -61,7 +48,7 @@ class URLSessionRequestBuilder<T>: RequestBuilder<T> {
      Return nil to use the default behavior (inferring the Content-Type from
      the file extension).  Return the desired Content-Type otherwise.
      */
-    func contentTypeForFormPart(fileURL: URL) -> String? {
+    open func contentTypeForFormPart(fileURL: URL) -> String? {
         nil
     }
 
@@ -69,7 +56,7 @@ class URLSessionRequestBuilder<T>: RequestBuilder<T> {
      May be overridden by a subclass if you want to control the URLRequest
      configuration (e.g. to override the cache policy).
      */
-    func createURLRequest(urlSession: URLSessionProtocol, method: HTTPMethod, encoding: ParameterEncoding, headers: [String: String]) throws -> URLRequest {
+    open func createURLRequest(urlSession: URLSession, method: HTTPMethod, encoding: ParameterEncoding, headers: [String: String]) throws -> URLRequest {
 
         guard let url = URL(string: URLString) else {
             throw DownloadException.requestMissingURL
@@ -93,7 +80,7 @@ class URLSessionRequestBuilder<T>: RequestBuilder<T> {
     }
 
     @discardableResult
-    override func execute() async throws -> Response<T> {
+    override open func execute() async throws -> Response<T> {
         let urlSession = createURLSession()
         
         guard let xMethod = HTTPMethod(rawValue: method) else {
@@ -128,17 +115,34 @@ class URLSessionRequestBuilder<T>: RequestBuilder<T> {
         }
     
         do {
-            let sessionDelegate = SingleRequestSessionDelegate(handler: taskDidReceiveChallenge, credential: credential)
-            let (data, response) = try await urlSession.data(for: request, delegate: sessionDelegate)
+            let sessionDelegate = SingleRequestSessionDelegate(credential: credential)
+
+            #if os(Linux)
+            let (data, response): (Data, URLResponse) = try await withCheckedThrowingContinuation { continuation in
+                urlSession.dataTask(with: request) { data, response, error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                    } else if let data, let response {
+                        continuation.resume(returning: (data, response))
+                    } else {
+                        continuation.resume(throwing: DecodableRequestBuilderError.nilHTTPResponse)
+                    }
+                }.resume()
+            }
+            let _ = sessionDelegate  // To hold the reference until URLSession is finished with task
+            return try self.processRequestResponse(urlRequest: request, data: data, response: response, error: nil)
+            #else
+            let (data, response) = try await urlSession.data(for: request)
             let _ = sessionDelegate  // To hold the reference until URLSession is finished with task
             
             return try processRequestResponse(urlRequest: request, data: data, response: response, error: nil)
+            #endif
         } catch {
             return try processRequestResponse(urlRequest: request, data: nil, response: nil, error: error)
         }
     }
 
-    func processRequestResponse(urlRequest: URLRequest, data: Data?, response: URLResponse?, error: Error?) throws -> Response<T> {
+    open func processRequestResponse(urlRequest: URLRequest, data: Data?, response: URLResponse?, error: Error?) throws -> Response<T> {
         if let error {
             if error is ErrorResponse {
                 // Rethrow the original error, do not wrap it again
@@ -151,7 +155,7 @@ class URLSessionRequestBuilder<T>: RequestBuilder<T> {
             throw ErrorResponse.error(-2, data, response, DecodableRequestBuilderError.nilHTTPResponse)
         }
 
-        guard httpResponse.isStatusCodeSuccessful else {
+        guard Array(200 ..< 300).contains(httpResponse.statusCode) else {
             throw ErrorResponse.error(httpResponse.statusCode, data, response, DecodableRequestBuilderError.unsuccessfulHTTPStatusCode)
         }
 
@@ -163,7 +167,7 @@ class URLSessionRequestBuilder<T>: RequestBuilder<T> {
         }
     }
 
-    func buildHeaders() -> [String: String] {
+    open func buildHeaders() -> [String: String] {
         var httpHeaders: [String: String] = [:]
         for (key, value) in headers {
             httpHeaders[key] = value
@@ -224,8 +228,8 @@ class URLSessionRequestBuilder<T>: RequestBuilder<T> {
 
 }
 
-class URLSessionDecodableRequestBuilder<T: Decodable>: URLSessionRequestBuilder<T> {
-    override func processRequestResponse(
+open class URLSessionDecodableRequestBuilder<T: Decodable>: URLSessionRequestBuilder<T> {
+    override open func processRequestResponse(
         urlRequest: URLRequest,
         data: Data?,
         response: URLResponse?,
@@ -243,7 +247,7 @@ class URLSessionDecodableRequestBuilder<T: Decodable>: URLSessionRequestBuilder<
             throw ErrorResponse.error(-2, data, response, DecodableRequestBuilderError.nilHTTPResponse)
         }
 
-        guard httpResponse.isStatusCodeSuccessful else {
+        guard Array(200 ..< 300).contains(httpResponse.statusCode) else {
             throw ErrorResponse.error(httpResponse.statusCode, data, response, DecodableRequestBuilderError.unsuccessfulHTTPStatusCode)
         }
 
@@ -321,39 +325,13 @@ class URLSessionDecodableRequestBuilder<T: Decodable>: URLSessionRequestBuilder<
     }
 }
 
-final class SingleRequestSessionDelegate: NSObject, URLSessionTaskDelegate {
+final class SingleRequestSessionDelegate: NSObject, URLSessionDelegate, URLSessionDataDelegate {
     
-    private let challengeHandler: BackendClientAPIChallengeHandler?
-    private let credential: URLCredential?
+    var taskDidReceiveChallenge: (() -> (String?))?
+    var credential: String?
     
-    init(handler: BackendClientAPIChallengeHandler?, credential: URLCredential?) {
-        self.challengeHandler = handler
+    init(credential: String?) {
         self.credential = credential
-    }
-    
-    func urlSession(
-        _ session: URLSession,
-        task: URLSessionTask,
-        didReceive challenge: URLAuthenticationChallenge
-    ) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
-        var newCredential: URLCredential?
-        var disposition: URLSession.AuthChallengeDisposition = .performDefaultHandling
-        
-        if let challengeHandler {
-            (disposition, newCredential) = challengeHandler(session, task, challenge)
-        } else {
-            if challenge.previousFailureCount > 0 {
-                disposition = .rejectProtectionSpace
-            } else {
-                newCredential = credential ?? session.configuration.urlCredentialStorage?.defaultCredential(for: challenge.protectionSpace)
-                
-                if newCredential != nil {
-                    disposition = .useCredential
-                }
-            }
-        }
-        
-        return (disposition, newCredential)
     }
 }
 
@@ -490,7 +468,7 @@ private class FormDataEncoding: ParameterEncoding {
 
         let fileData = try Data(contentsOf: fileURL)
 
-        let mimetype = contentTypeForFormPart(fileURL) ?? mimeType(for: fileURL)
+        let mimetype = contentTypeForFormPart(fileURL)
 
         let fileName = fileURL.lastPathComponent
 
@@ -546,17 +524,6 @@ private class FormDataEncoding: ParameterEncoding {
         return urlRequest
 
     }
-
-    func mimeType(for url: URL) -> String {
-        let pathExtension = url.pathExtension
-
-        if let uti = UTType(filenameExtension: pathExtension), let mimetype = uti.preferredMIMEType {
-            return mimetype
-        }
-
-        return "application/octet-stream"
-    }
-
 }
 
 private class FormURLEncoding: ParameterEncoding {

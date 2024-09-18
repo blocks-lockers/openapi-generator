@@ -226,11 +226,7 @@ extension KeyedDecodingContainerProtocol {
 
 }{{/generateModelAdditionalProperties}}{{^useVapor}}
 
-extension HTTPURLResponse {
-    var isStatusCodeSuccessful: Bool {
-        Configuration.successfulStatusCodeRange.contains(statusCode)
-    }
-}{{/useVapor}}{{#usePromiseKit}}
+{{/useVapor}}{{#usePromiseKit}}
 
 extension RequestBuilder {
     {{#nonPublicApi}}{{/nonPublicApi}}{{^nonPublicApi}}public {{/nonPublicApi}}func execute(dispatchQueue: DispatchQueue) -> Promise<Response<T>> {

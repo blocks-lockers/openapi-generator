@@ -11,7 +11,7 @@ import Vapor
 
 {{^useVapor}}
 {{#nonPublicApi}}internal{{/nonPublicApi}}{{^nonPublicApi}}open{{/nonPublicApi}} class RequestBuilder<T> {
-    var credential: URLCredential?
+    var credential: String?
     var headers: [String: String]
     {{#nonPublicApi}}{{/nonPublicApi}}{{^nonPublicApi}}public {{/nonPublicApi}}let parameters: [String: Any]?
     {{#nonPublicApi}}{{/nonPublicApi}}{{^nonPublicApi}}public {{/nonPublicApi}}let method: String
@@ -46,7 +46,7 @@ import Vapor
         return self
     }
 
-    {{#nonPublicApi}}internal{{/nonPublicApi}}{{^nonPublicApi}}open{{/nonPublicApi}} func setCredential(_ credential: URLCredential?) {
+    {{#nonPublicApi}}internal{{/nonPublicApi}}{{^nonPublicApi}}open{{/nonPublicApi}} func setCredential(_ credential: String?) {
         self.credential = credential
     }
 }
