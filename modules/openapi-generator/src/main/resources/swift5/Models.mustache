@@ -6,9 +6,7 @@
 //
 
 import Foundation
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif{{#useAlamofire}}
+{{#useAlamofire}}
 import Alamofire{{/useAlamofire}}
 #if canImport(FoundationNetworking)
 import FoundationNetworking
@@ -112,6 +110,6 @@ extension NullEncodable: Codable where Wrapped: Codable {
             }
         }
         
-        self.init(statusCode: response.statusCode, header: header, body: body, bodyData: bodyData)
+        self.init(statusCode: response.statusCode, header: responseHeader, body: body, bodyData: bodyData)
     }
 }

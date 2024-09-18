@@ -66,6 +66,10 @@ open class URLSessionRequestBuilder<T>: RequestBuilder<T> {
 
         originalRequest.httpMethod = method.rawValue
 
+        headers.forEach { key, value in
+            originalRequest.setValue(value, forHTTPHeaderField: key)
+        }
+
         buildHeaders().forEach { key, value in
             originalRequest.setValue(value, forHTTPHeaderField: key)
         }
