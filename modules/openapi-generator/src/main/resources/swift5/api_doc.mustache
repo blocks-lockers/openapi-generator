@@ -112,7 +112,7 @@ Name | Type | Description  | Notes
 #### {{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}}
 
 ```swift
-{{#nonPublicApi}}internal{{/nonPublicApi}}{{^nonPublicApi}}public{{/nonPublicApi}} enum {{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}} {
+{{#nonPublicApi}}{{/nonPublicApi}}{{^nonPublicApi}}public {{/nonPublicApi}}enum {{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}} {
     {{#responses}}
     case http{{code}}(value: {{#dataType}}{{.}}?{{/dataType}}{{^dataType}}Void?{{/dataType}}, raw: ClientResponse)
     {{/responses}}

@@ -104,6 +104,8 @@ public class Swift5OptionsProvider implements OptionsProvider {
                 .put(Swift5ClientCodegen.USE_CUSTOM_DATE_WITHOUT_TIME, "false")
                 .put(Swift5ClientCodegen.VALIDATABLE, "true")
                 .put(Swift5ClientCodegen.USE_CLASSES, "false")
+                .put(Swift5ClientCodegen.IMPLICIT_HEADERS_REGEX, null)
+                .put(Swift5ClientCodegen.CUSTOM_API_DTO_IMPORT, null)
                 .put(CodegenConstants.ENUM_UNKNOWN_DEFAULT_CASE, ENUM_UNKNOWN_DEFAULT_CASE_VALUE)
                 .build();
     }

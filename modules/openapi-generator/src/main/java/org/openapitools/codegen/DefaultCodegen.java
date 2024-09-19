@@ -4355,6 +4355,7 @@ public class DefaultCodegen implements CodegenConfig {
         } else {
             op.path = path;
         }
+        op.pathWithoutArguments = path.split("\\{")[0];
 
         op.operationId = toOperationId(operationId);
         op.summary = escapeText(operation.getSummary());

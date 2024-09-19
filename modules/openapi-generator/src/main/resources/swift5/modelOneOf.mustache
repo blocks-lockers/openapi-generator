@@ -1,9 +1,9 @@
-{{#nonPublicApi}}internal{{/nonPublicApi}}{{^nonPublicApi}}public{{/nonPublicApi}} enum {{classname}}: {{#useVapor}}Content{{/useVapor}}{{^useVapor}}Codable, JSONEncodable{{#vendorExtensions.x-swift-hashable}}, Hashable{{/vendorExtensions.x-swift-hashable}}{{/useVapor}} {
+{{#nonPublicApi}}{{/nonPublicApi}}{{^nonPublicApi}}public {{/nonPublicApi}}enum {{classname}}: {{#useVapor}}Content{{/useVapor}}{{^useVapor}}Codable{{#useJsonEncodable}}, JSONEncodable{{/useJsonEncodable}}{{#vendorExtensions.x-swift-hashable}}, Hashable{{/vendorExtensions.x-swift-hashable}}{{/useVapor}} {
     {{#oneOf}}
     case type{{.}}({{.}})
     {{/oneOf}}
 
-    public func encode(to encoder: Encoder) throws {
+    {{#nonPublicApi}}{{/nonPublicApi}}{{^nonPublicApi}}public {{/nonPublicApi}}func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
         {{#oneOf}}
@@ -13,7 +13,7 @@
         }
     }
 
-    public init(from decoder: Decoder) throws {
+    {{#nonPublicApi}}{{/nonPublicApi}}{{^nonPublicApi}}public {{/nonPublicApi}}init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         {{#oneOf}}
         {{#-first}}

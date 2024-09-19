@@ -17,6 +17,7 @@
 
 package org.openapitools.codegen.languages;
 
+
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.io.FilenameUtils;
@@ -31,8 +32,11 @@ import org.openapitools.codegen.model.ModelsMap;
 import org.openapitools.codegen.model.OperationMap;
 import org.openapitools.codegen.model.OperationsMap;
 import org.openapitools.codegen.utils.ModelUtils;
+import org.openapitools.codegen.templating.mustache.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.collect.ImmutableMap;
+import com.samskivert.mustache.Mustache.Lambda;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,6 +53,7 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
     private final Logger LOGGER = LoggerFactory.getLogger(Swift5ClientCodegen.class);
 
     public static final String PROJECT_NAME = "projectName";
+    public static final String SPEC_NAME = "specName";
     public static final String RESPONSE_AS = "responseAs";
     public static final String OBJC_COMPATIBLE = "objcCompatible";
     public static final String POD_SOURCE = "podSource";
@@ -63,10 +68,15 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
     public static final String READONLY_PROPERTIES = "readonlyProperties";
     public static final String REMOVE_MIGRATION_PROJECT_NAME_CLASS = "removeMigrationProjectNameClass";
     public static final String SWIFT_USE_API_NAMESPACE = "swiftUseApiNamespace";
+    public static final String SWIFT_API_CONFIG_PER_SPEC = "swiftApiConfigPerSpec";
     public static final String DEFAULT_POD_AUTHORS = "OpenAPI Generator";
     public static final String LENIENT_TYPE_CAST = "lenientTypeCast";
     public static final String USE_SPM_FILE_STRUCTURE = "useSPMFileStructure";
     public static final String SWIFT_PACKAGE_PATH = "swiftPackagePath";
+    public static final String IMPLICIT_HEADERS_REGEX = "implicitHeadersRegex";
+    public static final String USE_PF_DEPENDENCIES = "usePfDependencies";
+    public static final String CUSTOM_API_DTO_IMPORT = "customApiDtoImport";
+
     public static final String USE_CLASSES = "useClasses";
     public static final String USE_BACKTICK_ESCAPES = "useBacktickEscapes";
     public static final String GENERATE_MODEL_ADDITIONAL_PROPERTIES = "generateModelAdditionalProperties";
@@ -88,9 +98,12 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
     protected boolean nonPublicApi = false;
     protected boolean objcCompatible = false;
     protected boolean lenientTypeCast = false;
+    protected boolean swiftApiConfigPerSpec = false;
     protected boolean readonlyProperties = false;
     protected boolean removeMigrationProjectNameClass = false;
     protected boolean swiftUseApiNamespace = false;
+    protected String implicitHeadersRegex = null;
+    protected String customApiDtoImports = null;
     protected boolean useSPMFileStructure = false;
     protected String swiftPackagePath = "Classes" + File.separator + "OpenAPIs";
     protected boolean useClasses = false;
@@ -281,6 +294,9 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
         cliOptions.add(new CliOption(SWIFT_USE_API_NAMESPACE,
                 "Flag to make all the API classes inner-class "
                         + "of {{projectName}}API"));
+        cliOptions.add(new CliOption(SWIFT_API_CONFIG_PER_SPEC,
+                "Flag to generate separate configuration for every spec file")
+                .defaultValue(Boolean.FALSE.toString()));
         cliOptions.add(new CliOption(CodegenConstants.HIDE_GENERATION_TIMESTAMP,
                 CodegenConstants.HIDE_GENERATION_TIMESTAMP_DESC)
                 .defaultValue(Boolean.TRUE.toString()));
@@ -302,6 +318,13 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
                 + projectName + File.separator + "Classes" + File.separator + "OpenAPIs" + "."));
         cliOptions.add(new CliOption(USE_CLASSES, "Use final classes for models instead of structs (default: false)")
                 .defaultValue(Boolean.FALSE.toString()));
+
+        cliOptions.add(new CliOption(IMPLICIT_HEADERS_REGEX, "Skip header parameters that matches given regex in the generated API methods for Swift5"));
+        cliOptions.add(new CliOption(CUSTOM_API_DTO_IMPORT, "Add custom import to every API and DTO"));
+        
+        cliOptions.add(new CliOption(USE_PF_DEPENDENCIES, 
+            "Generate DependencyKey and DependencyValues for APIs")
+            .defaultValue(Boolean.FALSE.toString()));
 
         cliOptions.add(new CliOption(HASHABLE_MODELS,
             "Make hashable models (default: true)")
@@ -425,6 +448,9 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
         }
         sourceFolder = projectName + File.separator + sourceFolder;
 
+        // Setup SpecsName
+        additionalProperties.put(SPEC_NAME, getSpecName());
+
         // Setup nonPublicApi option, which generates code with reduced access
         // modifiers; allows embedding elsewhere without exposing non-public API calls
         // to consumers
@@ -489,6 +515,11 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
             setSwiftUseApiNamespace(convertPropertyToBooleanAndWriteBack(SWIFT_USE_API_NAMESPACE));
         }
 
+        // If option is enabled generate separate config file for each spec
+        if (additionalProperties.containsKey(SWIFT_API_CONFIG_PER_SPEC)) {
+            setSwiftApiConfigPerSpec(convertPropertyToBooleanAndWriteBack(SWIFT_API_CONFIG_PER_SPEC));
+        }
+
         if (!additionalProperties.containsKey(POD_AUTHORS)) {
             additionalProperties.put(POD_AUTHORS, DEFAULT_POD_AUTHORS);
         }
@@ -551,6 +582,14 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
         }
         additionalProperties.put(VALIDATABLE, validatable);
 
+        if (additionalProperties.containsKey(IMPLICIT_HEADERS_REGEX)) {
+            setImplicitHeadersRegex(additionalProperties.get(IMPLICIT_HEADERS_REGEX).toString());
+        }
+
+        if (additionalProperties.containsKey(CUSTOM_API_DTO_IMPORT)) {
+            setCustomApiDtoImports(additionalProperties.get(CUSTOM_API_DTO_IMPORT).toString());
+        }
+
         setLenientTypeCast(convertPropertyToBooleanAndWriteBack(LENIENT_TYPE_CAST));
 
         // make api and model doc path available in mustache template
@@ -576,9 +615,6 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
             supportingFiles.add(new SupportingFile("git_push.sh.mustache",
                     "",
                     "git_push.sh"));
-            supportingFiles.add(new SupportingFile("SynchronizedDictionary.mustache",
-                    sourceFolder,
-                    "SynchronizedDictionary.swift"));
             supportingFiles.add(new SupportingFile("XcodeGen.mustache",
                     "",
                     "project.yml"));
@@ -606,9 +642,16 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
                 sourceFolder,
                 "OpenAPIDateWithoutTime.swift"));
         }
+        String configBaseName = swiftApiConfigPerSpec ? getSpecName() : projectName;
         supportingFiles.add(new SupportingFile("APIs.mustache",
+                sourceFolder + File.separator + "Config",
+                configBaseName + "Config.swift"));
+        supportingFiles.add(new SupportingFile("RequestBuilder.mustache",
                 sourceFolder,
-                "APIs.swift"));
+                "RequestBuilder.swift"));
+        supportingFiles.add(new SupportingFile("spec.mustache",
+                sourceFolder + File.separator + "Specs",
+                getSpecName() + ".swift"));
         if (validatable) {
             supportingFiles.add(new SupportingFile("Validation.mustache",
             sourceFolder,
@@ -668,7 +711,15 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
         if (this.reservedWordsMappings().containsKey(name)) {
             return this.reservedWordsMappings().get(name);
         }
-        return useBacktickEscapes && !objcCompatible ? "`" + name + "`" : "_" + name;
+        return "_" + name;  // add an underscore to the name
+    }
+
+    public String getSpecName() {
+        String path = getInputSpec();
+        String[] segments = path.split("/");
+        String specNameWithExtension = segments[segments.length-1];
+        String specName = specNameWithExtension.split("\\.")[0];
+        return camelize(specName);
     }
 
     @Override
@@ -693,7 +744,13 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
             Schema inner = getAdditionalProperties(p);
             return "[String: " + getTypeDeclaration(inner) + "]";
         }
-        return super.getTypeDeclaration(p);
+        String typeDeclaration = super.getTypeDeclaration(p);
+
+        if (typeDeclaration.contentEquals("Dictionary")) {
+            return "[String: AnyCodable]";
+        }
+
+        return typeDeclaration;
     }
 
     @Override
@@ -772,7 +829,7 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
     @Override
     public String toModelFilename(String name) {
         // should be the same as the model name
-        return toModelName(name);
+        return getSpecName() + "_" + toModelName(name);
     }
 
     @Override
@@ -821,6 +878,11 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
             return "DefaultAPI";
         }
         return camelize(apiNamePrefix + "_" + name) + "API";
+    }
+
+    @Override
+    public String toApiFilename(String name) {
+        return getSpecName() + "_" + super.toApiFilename(name);
     }
 
     @Override
@@ -1018,6 +1080,18 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
         this.validatable = validatable;
     }
 
+    public void setImplicitHeadersRegex(String implicitHeadersRegex) {
+        this.implicitHeadersRegex = implicitHeadersRegex;
+    }
+
+    public void setCustomApiDtoImports(String customApiDtoImports) {
+        this.customApiDtoImports = customApiDtoImports;
+    }
+
+    public void setSwiftApiConfigPerSpec(boolean swiftApiConfigPerSpec) {
+        this.swiftApiConfigPerSpec = swiftApiConfigPerSpec;
+    }
+
     @Override
     public String toEnumValue(String value, String datatype) {
         // for string, array of string
@@ -1154,6 +1228,40 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
         }
     }
 
+    /**
+     * This method removes all implicit header parameters from the list of parameters
+     *
+     * @param operation - operation to be processed
+     */
+    protected void handleImplicitHeaders(CodegenOperation operation) {
+        if (operation.allParams.isEmpty()) {
+            return;
+        }
+        final ArrayList<CodegenParameter> copy = new ArrayList<>(operation.allParams);
+        operation.allParams.clear();
+
+        for (CodegenParameter p : copy) {
+            if (p.isHeaderParam && shouldBeImplicitHeader(p)) {
+                operation.implicitHeadersParams.add(p);
+                operation.headerParams.removeIf(header -> header.baseName.equals(p.baseName));
+                LOGGER.info("Update operation [{}]. Remove header [{}] because it's marked to be implicit", operation.operationId, p.baseName);
+            } else {
+                operation.allParams.add(p);
+            }
+        }
+        operation.hasParams = !operation.allParams.isEmpty();
+    }
+
+    private boolean shouldBeImplicitHeader(CodegenParameter parameter) {
+        return StringUtils.isNotBlank(implicitHeadersRegex) && parameter.baseName.matches(implicitHeadersRegex);
+    }
+
+    @Override
+    protected ImmutableMap.Builder<String, Lambda> addMustacheLambdas() {
+        return super.addMustacheLambdas()
+                .put("camelcase_param", new CamelCaseLambda().generator(this).escapeAsParamName(true));
+    }
+
     @Override
     public ModelsMap postProcessModels(ModelsMap objs) {
         ModelsMap postProcessedModelsEnum = postProcessModelsEnum(objs);
@@ -1267,6 +1375,7 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
             for (CodegenParameter cp : operation.allParams) {
                 cp.vendorExtensions.put("x-swift-example", constructExampleCode(cp, modelMaps, new HashSet<>()));
             }
+            handleImplicitHeaders(operation);
         }
         return objs;
     }
@@ -1379,14 +1488,14 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
 
     @Override
     public void postProcess() {
-        System.out.println("################################################################################");
-        System.out.println("# Thanks for using OpenAPI Generator.                                          #");
-        System.out.println("# Please consider donation to help us maintain this project \uD83D\uDE4F                 #");
-        System.out.println("# https://opencollective.com/openapi_generator/donate                          #");
-        System.out.println("#                                                                              #");
-        System.out.println("# swift5 generator is contributed by Bruno Coelho (https://github.com/4brunu). #");
-        System.out.println("# Please support his work directly via https://paypal.com/paypalme/4brunu \uD83D\uDE4F   #");
-        System.out.println("################################################################################");
+        // System.out.println("################################################################################");
+        // System.out.println("# Thanks for using OpenAPI Generator.                                          #");
+        // System.out.println("# Please consider donation to help us maintain this project \uD83D\uDE4F                 #");
+        // System.out.println("# https://opencollective.com/openapi_generator/donate                          #");
+        // System.out.println("#                                                                              #");
+        // System.out.println("# swift5 generator is contributed by Bruno Coelho (https://github.com/4brunu). #");
+        // System.out.println("# Please support his work directly via https://paypal.com/paypalme/4brunu \uD83D\uDE4F   #");
+        // System.out.println("################################################################################");
     }
 
     @Override
