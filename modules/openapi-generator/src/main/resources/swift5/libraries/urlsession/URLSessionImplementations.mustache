@@ -9,6 +9,12 @@ import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
+#if os(iOS)
+import MobileCoreServices
+#endif
+#if canImport(UniformTypeIdentifiers)
+import UniformTypeIdentifiers
+#endif
 
 {{#nonPublicApi}}{{/nonPublicApi}}{{^nonPublicApi}}public {{/nonPublicApi}}class URLSessionRequestBuilderFactory: RequestBuilderFactory {
 
@@ -470,7 +476,7 @@ private class FormDataEncoding: ParameterEncoding {
 
         let fileData = try Data(contentsOf: fileURL)
 
-        let mimetype = contentTypeForFormPart(fileURL)
+        let mimetype = contentTypeForFormPart(fileURL) ?? mimeType(for: fileURL)
 
         let fileName = fileURL.lastPathComponent
 
@@ -525,6 +531,31 @@ private class FormDataEncoding: ParameterEncoding {
 
         return urlRequest
 
+    }
+
+    func mimeType(for url: URL) -> String {
+        #if os(Linux)
+        return "application/octet-stream"
+        #else
+        let pathExtension = url.pathExtension
+
+        if #available(iOS 15, macOS 11, *) {
+            #if canImport(UniformTypeIdentifiers)
+            if let utType = UTType(filenameExtension: pathExtension) {
+                return utType.preferredMIMEType ?? "application/octet-stream"
+            }
+            #else
+            return "application/octet-stream"
+            #endif
+        } else {
+            if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExtension as NSString, nil)?.takeRetainedValue(),
+                    let mimetype = UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType)?.takeRetainedValue() {
+                return mimetype as String
+            }
+            return "application/octet-stream"
+        }
+        return "application/octet-stream"
+        #endif
     }
 }
 
